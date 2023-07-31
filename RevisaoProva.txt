@@ -1,0 +1,42 @@
+-- 1) buscar os IDs e títulos dos CDs de coletânea e trilha sonora. Deseja-se apenas CDs com duração superior a 90 e inferior a 120 min;
+
+πid, titulo (σ(tipo='coletanea' ∨ tipo='trilha sonora') ∧ duracao>=90 ∧ duracao<=120 (cds))
+
+-- 2) buscar os nomes dos grupos brasileiros que produziram CDs em 2013; 
+
+πnome (σnacionalidade='brasileiro' ∧ interpretes.tipo='grupo' ∧ ano=2013 (interpretes ⨝ interpretes.id = cds.interprete cds))
+
+*nota: junção natural pega o msm nome de campo e iguala de tabelas distintas*
+
+-- 3) buscar o IDs e títulos do CDs com preço superior a R$ 30,00. Se o CD possuir um intérprete, apresentar o nome e o tipo do intérprete;
+
+πcds.id, cds.titulo, interpretes.nome, interpretes.tipo (σpreco>=30 (cds⟕cds.interprete=interpretes.id interpretes))
+
+-- 4) buscar os códigos de barra dos CDs vendidos em 30/04/2011 e 01/05/2014 (exceto venda com cartão) e os nomes e IDs dos funcionários que realizaram as vendas; 
+
+πcodBarras, funcionarios.id, nome (σ(data=date('2011-04-30') ∨ data=date('2014-05-01')) ∧ vendas.formapgto!='cartao' (vendas ⨝ exemplares ⨝ vendas.funcionario=funcionarios.id funcionarios))
+
+-- 5) buscar as identificações (CD+exemplar) dos exemplares com status ok que estão disponíveis para venda;
+
+πcd, exemplar(σexemplares.status='ok' (exemplares)) - πcd, exemplar(vendas)
+com junção externa: πexemplares.cd, exemplares.exemplar (σstatus='ok' ∧ vendas.formapgto=null (exemplares⟕vendas))
+
+-- 6) buscar pares de IDs e nomes de funcionários que trabalham nos mesmos turnos, sem repetir um mesmo par na resposta (em posições diferentes).
+πf1.id, f1.nome, f2.id, f2.nome (ρf1 (funcionarios) ⨝ f1.turno=f2.turno ∧ f1.id<f2.id ρf2 (funcionarios)) 
+
+-- 7) buscar os IDs e nomes dos intérpretes internacionais que estão presentes tanto em CDs de coletânea quanto em CDs de intérprete
+
+πinterpretes.id, interpretes.nome (σcds.tipo='interprete' ∧ nacionalidade≠'brasileiro' (cds⨝cds.interprete=interpretes.id interpretes)) ∩ πinterpretes.id, interpretes.nome (σcds.tipo='coletanea' ∧ nacionalidade≠'brasileiro' (cds⨝cds.id=faixas.cd faixas⨝faixas.interprete=interpretes.id interpretes))
+
+-- 8) buscar os IDs e nomes dos funcionários do noturno que venderam exemplares de todos os CDs interpretados pela cantora Ivete Sangalo;
+
+πfuncionarios.id, funcionarios.nome, vendas.cd (vendas⨝vendas.funcionario=funcionarios.id funcionarios) ÷ πcds.id(σnome='Ivete Sangalo' (cds⨝cds.interprete=interpretes.id interpretes))
+
+-- 9) os funcionários que venderam o CD mais caro da loja tiveram um aumento de 10% nos seus salários;
+
+πfuncionarios.nome ((πid (cds) - πc1.id(ρc1(cds)⨝c1.preco<c2.preco ρc2(cds)))⨝id=vendas.cd vendas⨝vendas.funcionario=funcionarios.id funcionarios) --atualização
+
+-- 10) um novo funcionário foi admitido na loja. Seu código é 25 e ele vai trabalhar no mesmo turno do funcionário João da Silva (CPF = 22334455667) e receber o mesmo salário dele. O nome do novo funcionário é Pedro Souza, seu CPF é 11223344556, seu RG é 9999999999 e ele reside na rua X, 333, Joinville.
+
+Funcionarios <- Funcionarios U {(25, 'Pedro Souza', null, '11223344556', null, '9999999999', 'rua X, 333, Joinville')} X πsalario, turno (σCPF='22334455667'(Funcionarios))
+

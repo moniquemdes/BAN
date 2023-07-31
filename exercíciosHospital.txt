@@ -1,0 +1,69 @@
+
+1)todos os dados das consultas marcadas no período da tarde após o dia 19/06/2006.
+
+SELECT * FROM consultas where hora>='12:00:00' and data = '2006-06-19';
+
+2)nome e a idade dos pacientes que não residem em Florianópolis.
+
+SELECT nome, idade FROM pacientes where cidade<>'Florianopolis';
+
+3)hora das consultas marcadas antes do dia 14/06/2006 e depois do dia 20/06/2006.
+
+SELECT hora FROM consultas where data < '2006-06-14' or data > '2006-06-20';
+
+4) o menor e o maior salário dos funcionários da Florianópolis?
+
+Select MIN(salario) as menorSalario, MAX(salario) as maiorSalario from funcionarios where cidade='Florianopolis';
+
+5) o horário da última consulta marcada para o dia 13/06/2006?
+
+SELECT  max(hora) from consultas where data='2006-06-13';
+
+6) o código, o nome e o salário líquido dos funcionários. O salário líquido é obtido pela diferença entre o salário cadastrado menos 20% deste mesmo salário.
+
+SELECT codf, nome, salario - (salario*0.2) as salarioLiquido from funcionarios;
+
+7)os códigos e nomes dos pacientes com mais de 25 anos que estão com tendinite, fratura, gripe e sarampo.
+
+SELECT codp, nome from pacientes where idade > 25 
+and doenca in('tendinite', 'fratura', 'gripe', 'sarampo')
+
+8)o nome e CPF dos médicos que também são pacientes do hospital.
+
+SELECT nome, cpf from medicos where cpf in(SELECT cpf from pacientes);
+
+9) Faça uma consulta SQL que busque número e andar dos ambulatórios utilizados por médicos ortopedistas.
+
+SELECT nroa, andar from ambulatorios where nroa in(SELECT nroa from medicos where especialidade='ortopedia');
+
+10) nome e idade dos médicos que têm consulta com a paciente Ana.
+
+SELECT nome, idade from medicos where codm in(select codm from consultas where codp in(SELECT codp from pacientes where nome ='Ana'));
+
+11) todos os ambulatórios e, para aqueles ambulatórios onde médicos dão atendimento, exibir também os seus códigos e nomes.
+
+SELECT* from ambulatorios join medicos on ambulatorios.nroa = medicos.nroa;
+
+12) o código e nome dos pacientes que nunca consultaram o médico que se chama Pedro.
+
+SELECT codp, nome FROM pacientes
+EXCEPT
+SELECT p.codp, p.nome FROM pacientes p NATURAL JOIN consultas c JOIN medicos m ON m.codm=c.codm
+AND m.nome=’Pedro’;
+
+13) utilize o operador ANY/ALL e que retorne o nome e a idade do médico mais jovem (sem usar função MIN!).
+
+ SELECT nome, idade FROM Medicos WHERE idade <= ALL (SELECT idade FROM Medicos)
+
+14) utilize o operador ANY/ALL e que retorne o nome e CPF dos pacientes com consultas marcadas para horários anteriores a todos os horários de consultas marcadas para o dia 12 de Novembro de 2006.
+
+SELECT nome, cpf FROM Pacientes WHERE codp IN (SELECT codp FROM Consultas WHERE hora < ALL (SELECT hora FROM Consultas WHERE data = '2006-11-12')
+
+15) utilize o operador EXISTS e que retorne o nome e idade dos médicos que têm consulta com a paciente Ana.
+
+SELECT nome, idade FROM medicos m WHERE EXISTS (Select * FROM Consultas c WHERE m.codm = c.codm AND EXISTS (SELECT * FROM Pacientes p WHERE nome = 'Ana' AND p.codp = c.codp))
+
+16) o operador EXISTS e que retorne o número do ambulatório com a maior capacidade (sem usar função MAX!).
+
+SELECT al.nroa FROM Ambulatorios al WHERE NOT EXISTS (SELECT * FROM Ambulatorios a2 WHERE a2.capacidade > a1.capacidade)
+
