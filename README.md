@@ -13,8 +13,3 @@ Repositório contendo materiais de estudo, exercícios e exemplos práticos de S
   Funções de agregação (COUNT, SUM, AVG)
   Group By e Having  
   Views e procedimentos armazenados
-
-### Modelagem de Dados
-  Diagrama ER (veja imagens p1Parte1.PNG e p1Parte2.PNG)
-  Normalização
-  Chaves primárias e estrangeiras
